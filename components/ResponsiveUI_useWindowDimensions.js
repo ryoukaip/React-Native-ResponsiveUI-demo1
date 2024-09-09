@@ -4,50 +4,41 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  Dimensions,
   Image,
   KeyboardAvoidingView,
   TextInput,
   ScrollView,
   Platform,
   StatusBar,
-  useWindowDimensions
+  useWindowDimensions,
 } from "react-native";
 
 const ResponsiveUI = () => {
-  // Get the initial screen width and height
+  // Get the screen width and height using the hook
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [isPortrait, setIsPortrait] = useState(isPortraitMode());
   const [statusBarStyle, setStatusBarStyle] = useState("dark-content");
   const [statusBarBackgroundColor, setStatusBarBackgroundColor] = useState("#fff");
 
-
   // Function to check if the orientation is portrait
   function isPortraitMode() {
-    const dim = Dimensions.get("window");
-    return dim.height >= dim.width;
+    return screenHeight >= screenWidth;
   }
 
-  // Event listener for screen orientation change
+  // Update orientation and status bar style when dimensions change
   useEffect(() => {
-    const subscription = Dimensions.addEventListener("change", () => {
-      const portrait = isPortraitMode();
-      setIsPortrait(portrait);
-      // Update status bar style based on orientation
-      if (portrait) {
-        setStatusBarStyle("dark-content");
-        setStatusBarBackgroundColor("#fff"); // Light background for portrait
-      } else {
-        setStatusBarStyle("light-content");
-        setStatusBarBackgroundColor("#000"); // Dark background for landscape
-      }
-    });
+    const portrait = isPortraitMode();
+    setIsPortrait(portrait);
+    // Update status bar style based on orientation
+    if (portrait) {
+      setStatusBarStyle("dark-content");
+      setStatusBarBackgroundColor("#fff"); // Light background for portrait
+    } else {
+      setStatusBarStyle("light-content");
+      setStatusBarBackgroundColor("#000"); // Dark background for landscape
+    }
+  }, [screenWidth, screenHeight]); // Dependencies to trigger effect on dimension changes
 
-    // Clean up event listener on component unmount
-    return () => subscription?.remove();
-  }, []);
-
-  // Get the width of the screen
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   // Set the button width to half of the screen width if landscape
   const buttonWidth = isPortrait ? screenWidth * 0.9 : screenWidth * 0.4;
   // Set the image width to 80% of the screen width and dynamically adjust height based on orientation
@@ -62,7 +53,7 @@ const ResponsiveUI = () => {
       />
       <ScrollView>
         <KeyboardAvoidingView
-          style={styles.container}
+          style={styles.innerContainer}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
           {/* View for buttons */}
@@ -112,6 +103,9 @@ const ResponsiveUI = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  innerContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingTop: Platform.select({
@@ -122,7 +116,6 @@ const styles = StyleSheet.create({
   buttonRow: {
     justifyContent: "space-between",
   },
-
   button: {
     backgroundColor: "blue",
     alignItems: "center",
@@ -134,7 +127,6 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginVertical: 10, // Adds space between buttons and image
   },
-
   buttonText: {
     color: "#fff",
     fontSize: 16,
